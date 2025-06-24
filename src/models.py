@@ -27,7 +27,7 @@ import sys
 import requests
 
 
-def retrieve_gemini_models(api_key=None):
+def retrieve_gemini_models():
     """
     Purpose: Retrieve a comprehensive list of available Gemini models via the
     Google Generative Language API.
@@ -51,8 +51,7 @@ def retrieve_gemini_models(api_key=None):
     models = []
 
     # Other logic: API key retrieval
-    if not api_key:
-        api_key = os.getenv("GEMINI_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY")
 
     # Core logic: Handle missing API key
     if not api_key:

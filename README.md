@@ -12,9 +12,13 @@ From advanced natural language processing to cutting-edge content generation, ea
 
 This section highlights key projects and modules within this repository.
 
-* **`gemini_models.py`**: This module is engineered to retrieve a comprehensive list of Gemini models directly from the Google Generative Language API.
-    * [gemini_models.py](./src/gemini_models.py)
+* **`models.py`**: This module is engineered to retrieve a comprehensive list of Gemini models directly from the Google Generative Language API.
+    * [models.py](./src/models.py)
     * [Google AI for Developers/Gemini models](https://ai.google.dev/gemini-api/docs/models)
+
+* **`q_a.py`**: An interactive Gemini API chatbot that streams real-time responses using custom UTF-8 decoding and environment-based API key retrieval.
+    * [q_a.py](./src/q_a.py)
+    * [Google AI for Developers/Gemini models](https://ai.google.dev/gemini-api/docs/text-generation#rest_5)
 
 ---
 
