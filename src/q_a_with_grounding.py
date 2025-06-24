@@ -79,14 +79,15 @@ def generate_response(conversation_history: dict, generation_config: dict = None
         "generationConfig": generation_config
     }
 
-    request_body["tools"] = []
-    request_body["tools"].append({ "googleSearch": {} })
+    if not request_body["generationConfig"]:
+        request_body["tools"] = []
+        request_body["tools"].append({ "googleSearch": {} })
 
-    request_body["tool_config"] = {
-        "function_calling_config": {
-          "mode": "AUTO"
+        request_body["tool_config"] = {
+            "function_calling_config": {
+              "mode": "AUTO"
+            }
         }
-    }
 
     byte_stream_buffer = b""
     json_fragment = ""
@@ -420,6 +421,10 @@ def parse_properties(lines, base_indent, start_index):
             continue
         key, remainder = line.lstrip(" ").split(":", 1)
         key = key.strip()
+        is_key = key.startswith('"') and key.endswith('"')
+        is_key = is_key or (key.startswith("'") and key.endswith("'"))
+        if is_key:
+            key = key[1:-1]
         remainder = remainder.strip()
         definition = {}
         if remainder.startswith("[") and remainder.endswith("]"):

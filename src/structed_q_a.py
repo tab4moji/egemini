@@ -286,6 +286,10 @@ def parse_properties(lines, base_indent, start_index):
             continue
         key, remainder = line.lstrip(" ").split(":", 1)
         key = key.strip()
+        is_key = key.startswith('"') and key.endswith('"')
+        is_key = is_key or (key.startswith("'") and key.endswith("'"))
+        if is_key:
+            key = key[1:-1]
         remainder = remainder.strip()
         definition = {}
         if remainder.startswith("[") and remainder.endswith("]"):
