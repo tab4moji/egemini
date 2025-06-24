@@ -48,8 +48,52 @@ This section highlights key projects and modules within this repository.
       Earth’s colors: [green, blue, white]
       ```
     * [Google AI for Developers/Structured output](https://ai.google.dev/gemini-api/docs/structured-output#configuring-a-schema)
+
+* **`q_a_with_files.py`**: An interactive Gemini API chatbot that supports file attachment and structured output using a simple response schema (respMSL).
+    * [q_a_with_files.py](./src/q_a_with_files.py)
+      ```plaintext
+      user@penguin:src$ ./q_a_with_files.py
+      model: models/gemini-2.0-flash
+
+      You can insert a newline with ** Alt+Enter ** for your prompt.
+      user:
+      [[~/downloads/cat.jpg]]
+      can you see it?
+      ::::
+      picture: [dog, cat, fish]
+      model:
+      {
+        "picture": "cat"
+      }
+      user: [[~/downloads/speech.mp3]] Can you hear this ?
+      model: Yes, I can hear the audio. It sounds like a person speaking about the importance of being able to communicate positions within a room in the context of production and staging.
+      user: Transcribe what you just heard.
+      model: Being able to communicate positions ...
+      user:
+      It's OK, good bye.
+      model: Goodbye! Have a great day.
+
+      user@penguin:src$
+      ```
+    * [simple response schema (respMSL)](./src/respsml_spec.md)
+      ```plaintext
+      [[~/downloads/cat.jpg]]
+      Can you see it?
+      ::::
+      picture: [dog, cat, fish]
+      ```
+    * [Google AI for Developers/Structured output](https://ai.google.dev/gemini-api/docs/structured-output#configuring-a-schema)
+    * [Google AI for Developers/Image understanding](https://ai.google.dev/gemini-api/docs/image-understanding#inline-image)
+    * [Google AI for Developers/Audio understanding](https://ai.google.dev/gemini-api/docs/audio#inline-audio)
+
 ---
 
 ### Keywords
 
 `Google Gemini API`, `Gemma 3n`, `LLM`, `Natural Language Processing`, `AI`, `Experimentation`, `Python`
+
+---
+
+### LICENSE
+
+MIT license
