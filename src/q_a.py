@@ -9,6 +9,12 @@ Update History:
 2.2, 2025-06-23: Updated API key handling in stream_generate_content.
     - Now, if the api_key parameter is not provided, the function retrieves it from
       the environment variable "GEMINI_API_KEY".
+2.3, 2025-06-24: Optimized streaming response handling in generate_response.
+    - Merged the separate `decoded_chunk` assignment into a direct decode and append operation.
+    - Reset `byte_stream_buffer` immediately after successful UTF-8 decoding.
+    - Moved the reset of `json_fragment` outside the conditional block to streamline logic.
+    - Simplified the conditional branching when appending to `json_buffer` for
+      clearer JSON extraction.
 Keywords:
     GEMINI_MODEL, GEMINI_API_KEY, GEMINI_API_URL, generate_response, conversation_history.
 """
@@ -71,23 +77,21 @@ def generate_response(conversation_history: dict, generation_config: dict = None
 
             try:
                 # Attempt to decode the accumulated bytes as UTF-8 and append to json_fragment
-                decoded_chunk = byte_stream_buffer.decode("utf-8")
-                json_fragment += decoded_chunk
-                byte_stream_buffer = b""
+                json_fragment += byte_stream_buffer.decode("utf-8")
             except UnicodeDecodeError:
                 # Incomplete UTF-8 sequence; wait for the next chunk
                 continue
 
+            byte_stream_buffer = b""
+
             if json_buffer:
                 json_buffer += json_fragment
-                json_fragment = ""
+            elif match := re.search(r"^[ \t\r\n]*data: (.+)$", json_fragment):
+                json_buffer = match.group(1)
             else:
+                continue
 
-                if match := re.search(r"^[ \t\r\n]*data: (.+)$", json_fragment):
-                    json_buffer = match.group(1)
-                    json_fragment = ""
-                else:
-                    continue
+            json_fragment = ""
 
             try:
                 parsed_data = json.loads(json_buffer)
