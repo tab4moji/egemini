@@ -75,16 +75,39 @@ This section highlights key projects and modules within this repository.
 
       user@penguin:src$
       ```
-    * [simple response schema (respMSL)](./src/respsml_spec.md)
+    * attachment files
       ```plaintext
-      [[~/downloads/cat.jpg]]
-      Can you see it?
-      ::::
-      picture: [dog, cat, fish]
+      [[~/downloads/cat.jpg]] can you see it?
       ```
+    * [simple response schema (respMSL)](./src/respsml_spec.md)
     * [Google AI for Developers/Structured output](https://ai.google.dev/gemini-api/docs/structured-output#configuring-a-schema)
     * [Google AI for Developers/Image understanding](https://ai.google.dev/gemini-api/docs/image-understanding#inline-image)
     * [Google AI for Developers/Audio understanding](https://ai.google.dev/gemini-api/docs/audio#inline-audio)
+
+* **`q_a_with_grounding.py`**: An interactive Gemini API chatbot that supports googleSearch and file attachment and structured output using a simple response schema (respMSL).
+    * [q_a_with_grounding.py](./src/q_a_with_grounding.py)
+      ```plaintext
+      user@penguin:src$ ./q_a_with_grounding.py
+      model: models/gemini-2.0-flash
+
+      You can insert a newline with ** Alt+Enter ** for your prompt.
+      user: hello!
+      model: Hello! How can I help you today?
+      user: what time is it.
+      model: The current time is Tuesday, June 24, 2025 at 1:09:32 PM UTC.
+      user:
+      It's OK, good bye.
+      model: OK, goodbye!
+
+      user@penguin:src$ date -u
+      Tue Jun 24 01:09:41 PM UTC 2025
+      user@penguin:src$
+      ```
+    * [simple response schema (respMSL)](./src/respsml_spec.md)
+    * [Google AI for Developers/Structured output](https://ai.google.dev/gemini-api/docs/structured-output#configuring-a-schema)
+    * [Google AI for Developers/Image understanding](https://ai.google.dev/gemini-api/docs/image-understanding#inline-image)
+    * [Google AI for Developers/Audio understanding](https://ai.google.dev/gemini-api/docs/audio#inline-audio)
+    * [Google AI for Developers/Grounding with Google Search](https://ai.google.dev/gemini-api/docs/google-search#rest)
 
 ---
 
