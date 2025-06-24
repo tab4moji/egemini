@@ -20,6 +20,34 @@ This section highlights key projects and modules within this repository.
     * [q_a.py](./src/q_a.py)
     * [Google AI for Developers/Streaming responses](https://ai.google.dev/gemini-api/docs/text-generation#rest_5)
 
+* **`structed_q_a.py`**: An interactive Gemini API chatbot that supports structured output using a simple response schema (respMSL). This script provides a command-line interface for natural language interaction with the Gemini API, designed to easily parse structured responses for further processing.
+    * [structed_q_a.py](./src/structed_q_a.py)
+      ```plaintext
+      user@penguin:src$ ./structed_q_a.py
+      model: models/gemini-2.0-flash
+
+      You can insert a newline with **Alt+Enter** for your prompt.
+      user: hello.
+      model: Hello! How can I help you today?
+      user: What is the color of the Earth?
+      ::::
+      Earth’s colors: [green, blue, white]
+      model:
+      {
+        "Earth’s colors": "green"
+      }
+      user: It's OK, good bye.
+      model: Goodbye! Have a great day!
+
+      user@penguin:src$
+      ```
+    * [simple response schema (respMSL)](./src/respsml_spec.md)
+      ```plaintext
+      What is the color of the Earth?
+      ::::
+      Earth’s colors: [green, blue, white]
+      ```
+    * [Google AI for Developers/Structured output](https://ai.google.dev/gemini-api/docs/structured-output#configuring-a-schema)
 ---
 
 ### Keywords

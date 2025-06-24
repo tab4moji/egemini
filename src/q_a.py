@@ -129,7 +129,7 @@ def get_user_input(role):
         try:
             user_text = input(f"{role}: ")
         except EOFError:
-            user_text = "bye."
+            user_text = "It's OK, good bye."
             print(user_text)
         if user_text:
             break
@@ -148,13 +148,12 @@ def get_model_response(conversation_history):
     response_text = ""
     for chunk in generate_response(conversation_history):
         for candidate in chunk.get("candidates", []):
-            if "finishReason" in candidate:
-                continue
-            if "parts" in candidate.get("content", {}):
-                for part in candidate["content"]["parts"]:
-                    if "text" in part and part["text"]:
-                        print(part["text"], end="", flush=True)
-                        response_text += part["text"]
+            for part in candidate.get("content", {}).get("parts", []):
+                text_chunk = part.get("text", "")
+                if "{" in text_chunk and response_text == "":
+                    print()
+                print(text_chunk, end="", flush=True)
+                response_text += part["text"]
     return response_text
 
 
