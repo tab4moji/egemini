@@ -27,6 +27,14 @@ Update History:
       including the ability to insert newlines with Alt+Enter.
     - Model Change**: The Gemini model used has been updated from `models/gemma-3n-e4b-it`
       to `models/gemini-2.0-flash`.
+2.5, 2025-06-24: Added file attachment support.
+    - Includes functionality to extract and process file attachments from user input.
+    - Supported file types include various image, audio, and text formats.
+    - Binary files (images, audio) are base64 encoded, and text files are read directly
+      for inclusion in the request.
+    - JSON files are specifically handled to be formatted as single-line strings.
+    - The `get_model_response` function was updated to handle and include these attachments
+      in the conversation history.
 
 Keywords:
     GEMINI_MODEL, GEMINI_API_KEY, GEMINI_API_URL, generate_response, conversation_history.
@@ -34,7 +42,10 @@ Keywords:
 
 import os
 import re
+import sys
 import json
+import mimetypes
+import base64
 import requests
 
 import prompt_toolkit
@@ -163,6 +174,7 @@ def get_model_response(conversation_history):
     user_prompt = conversation_history[-1]
     generation_config = None
     if user_prompt["role"] == "user":
+        user_attachments = []
         for part in user_prompt["parts"]:
             if "text" in part:
                 if response_schema := extract_response_schema(part["text"]):
@@ -171,6 +183,11 @@ def get_model_response(conversation_history):
                         "responseSchema": response_schema
                     }
                     break
+        for part in user_prompt["parts"]:
+            if "text" in part:
+                result = extract_attachments(part["text"])
+                user_attachments.append(result)
+        user_prompt["parts"] += user_attachments
 
     response_text = ""
     for chunk in generate_response(conversation_history, generation_config):
@@ -184,14 +201,116 @@ def get_model_response(conversation_history):
 
     if re.search(r'}$', response_text):
         print()
-    return response_text
+    elif not re.search(r'\n$', response_text):
+        print()
+
+    return response_text.rstrip()
 
 
-def extract_response_schema(text):
+def extract_attachments(raw_text):
     """
-    Extracts the "::::" block from the text and converts it into a JSON Schema dictionary.
+    Extracts attachments from the user's raw input text and generates content objects
+    (in dictionary format) for the Gemini API.
+    If attachments are present, images or audio files are read in binary mode and
+    encoded as a base64 string.
+
+    Args:
+        raw_text (str): The raw input text from the user (which may include attachment notations).
+
+    Returns:
+        list: A list of dictionaries containing attachment information.
     """
-    lines = text.splitlines()
+    # Helper function to process binary files (e.g., images or audio) in a unified manner.
+    def _process_binary(filename):
+        with open(filename, "rb") as binary_file:
+            data = binary_file.read()
+        encoded = base64.b64encode(data).decode("utf-8")
+        return encoded
+
+    # Helper function to read the contents of a text file.
+    # If the file is JSON, it will be formatted as a single line.
+    def _read_text_file(filename):
+        try:
+            with open(filename, "r", encoding="utf-8") as text_file:
+                content = text_file.read()
+        except UnicodeDecodeError:
+            with open(filename, "rb") as text_file:
+                content = text_file.read().decode("utf-8", errors="replace")
+        if filename.lower().endswith(".json"):
+            try:
+                parsed = json.loads(content)
+                content = json.dumps(parsed, separators=(',', ':'))
+            except json.JSONDecodeError:
+                pass
+        return content
+
+    block_pattern = r"\[\[(.+?)\]\]"
+    filenames = re.findall(block_pattern, raw_text)
+    extracted_attachments = []
+    for filename in filenames:
+        filename = os.path.expanduser(filename)
+        if not os.path.isfile(filename):
+            # Skip if the specified file is not found.
+            print(f"file not found: {filename}", file=sys.stderr)
+            continue
+        mime_type, _ = mimetypes.guess_type(filename)
+        if mime_type is None:
+            continue
+        if "json" in mime_type:
+            # Gemini API does not support application/json, process as text/javascript instead.
+            mime_type = "text/javascript"
+        if "x-wav" in mime_type:
+            # Gemini API does not support audio/x-wav, process as audio/wav instead.
+            mime_type = "audio/wav"
+        if "audio/mpeg" in mime_type:
+            # Gemini API does not support audio/mpeg, process as audio/mp3 instead.
+            mime_type = "audio/mp3"
+        if "image/" in mime_type or "audio/" in mime_type:
+            # Supported formats for the Gemini API (see API documentation for details)
+            allowed_mime_types = [
+                "image/png", "image/jpeg", "image/webp", "image/heic", "image/heif",
+                "audio/wav", "audio/mp3", "audio/aiff", "audio/aac", "audio/ogg", "audio/flac"
+            ]
+            try:
+                assert mime_type in allowed_mime_types
+                content_data = _process_binary(filename)
+                extracted_attachments.append({
+                    "inline_data": {
+                        "data": content_data,
+                        "mime_type": mime_type
+                    }
+                })
+            except AssertionError:
+                print(f"unknown mime type: {mime_type} / {allowed_mime_types}", file=sys.stderr)
+                continue
+        else:
+            try:
+                allowed_text_types = [
+                    "application/pdf",
+                    "application/x-javascript", "text/javascript",
+                    "application/x-python", "text/x-python",
+                    "text/html", "text/css", "text/md", "text/csv", "text/xml", "text/rtf",
+                    "text/plain"
+                ]
+                assert mime_type in allowed_text_types
+                content_text = _read_text_file(filename)
+                extracted_attachments.append({
+                    "inline_data": {
+                        "mime_type": mime_type,
+                        "data": content_text
+                    }
+                })
+            except AssertionError:
+                print(f"unknown mime type: {mime_type} / {allowed_text_types}", file=sys.stderr)
+                continue
+    return extracted_attachments
+
+
+def extract_response_schema(raw_text):
+    """
+    Extracts the "::::" block from the raw_text and converts it into a JSON Schema dictionary.
+    """
+    lines = raw_text.splitlines()
     schema_start = None
     for i, line in enumerate(lines):
         if line.strip() == "::::":
@@ -436,6 +555,8 @@ def main():
         model_text = get_model_response(conversation_history)
         model_record["parts"].append({"text": model_text})
         if re.search(r'\b(?:bye|goodbye)\b', model_text, flags=re.IGNORECASE):
+            break
+        if re.search(r'\b(?:bye|goodbye)\b', user_text, flags=re.IGNORECASE):
             break
     print()
 
