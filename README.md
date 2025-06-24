@@ -18,7 +18,7 @@ This section highlights key projects and modules within this repository.
 
 * **`q_a.py`**: An interactive Gemini API chatbot that streams real-time responses using custom UTF-8 decoding and environment-based API key retrieval.
     * [q_a.py](./src/q_a.py)
-    * [Google AI for Developers/Gemini models](https://ai.google.dev/gemini-api/docs/text-generation#rest_5)
+    * [Google AI for Developers/Streaming responses](https://ai.google.dev/gemini-api/docs/text-generation#rest_5)
 
 ---
 
